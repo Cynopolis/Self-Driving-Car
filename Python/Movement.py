@@ -8,9 +8,6 @@ class Move:
         self.direction = direction
         # give time for the arduino to boot
         time.sleep(1)
-        # flush the serial buffer
-        self.comm.write(('\r\n0').encode())
-        self.comm.read(100).decode().strip()
 
     #speed is a floating point number between -1 and 1
     def setSpeed(self, speed):
@@ -19,33 +16,36 @@ class Move:
             speed += 3
         speed += 14
 
-        #for i in range(2):
-        self.comm.write(('\r\n%f' % speed).encode())
-        str = self.comm.read(100).decode().strip()
-        print(str)
+        while(float(self.checkSpeed()) != self.speed):
+            self.comm.write(('\r\n%f' % speed).encode())
 
     #direction is an integer between -45 and 45.
     def setWheelPos(self, direction):
         self.direction = direction
-        round(direction / 45)
+        direction = round(direction / 45)
         if direction < 0:
             direction += 3
         direction += 10
-        self.comm.write(('\r\n%d' % direction).encode())
+        while(float(self.direction != self.checkWheelPos())):
+            self.comm.write(('\r\n%d' % direction).encode())
 
     def checkSpeed(self):
-        self.comm.write(('\r\n17').encode())
         try:
-            ans = float(self.comm.read(100).decode().strip())
+            ans = ''
+            while ans == '':
+                self.comm.write(('\r\n17').encode())
+                ans = self.comm.read(100).decode().strip()
+            float(ans)
             return ans
         except UnicodeDecodeError:
             return -2
 
     def checkWheelPos(self):
-        self.comm.write(('\r\n13').encode())
         try:
-            ans = self.comm.read(100).decode().strip()
-            print(ans)
+            ans = ''
+            while ans == '':
+                self.comm.write(('\r\n13').encode())
+                ans = self.comm.read(100).decode().strip()
             ans = int(ans)
             return ans
         except UnicodeDecodeError:

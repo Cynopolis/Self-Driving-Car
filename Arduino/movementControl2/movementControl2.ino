@@ -45,7 +45,11 @@ void loop() {
         if(steer <= 1){
           setDirection(steer);
         }
-        else if(steer == 3){
+        else if(steer > 1 && steer < 3){
+          steer -= 3;
+          setDirection(steer);
+        }
+        else if(steer >= 3){
           getDirection();
         }
       }
@@ -77,7 +81,7 @@ void getData(){
 
 void setDirection(int dir){
   // to the left
-  if(dir == 2){
+  if(dir == -1){
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
   }
@@ -90,12 +94,7 @@ void setDirection(int dir){
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, LOW);
   }
-  if(dir > 1){
-    steerDir = (dir-3);
-  }
-  else{
-    steerDir = dir;
-  }
+  steerDir = dir*45;
   
 }
 
