@@ -19,6 +19,5 @@ void loop() {
     Serial.println(data);
   }
   str = "";
-  delay(100);
 
 }

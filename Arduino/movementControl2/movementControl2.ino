@@ -43,7 +43,6 @@ void loop() {
       if(formattedData >= 10 && formattedData <= 13){
         int steer = (int)formattedData - 10;
         if(steer <= 1){
-          steerDir = steer;
           setDirection(steer);
         }
         else if(steer == 3){
@@ -77,10 +76,12 @@ void getData(){
 }
 
 void setDirection(int dir){
+  // to the left
   if(dir == 2){
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
   }
+  // to the right
   else if(dir == 1){
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
@@ -89,6 +90,13 @@ void setDirection(int dir){
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, LOW);
   }
+  if(dir > 1){
+    steerDir = (dir-3);
+  }
+  else{
+    steerDir = dir;
+  }
+  
 }
 
 //added this function in case i'm able to tell which angle the steering wheel is at.
