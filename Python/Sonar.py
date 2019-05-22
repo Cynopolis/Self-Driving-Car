@@ -10,29 +10,30 @@ class Sonar:
     def updateFrame(self):
         ans = ''
         # continually requests data until it's told the command has been recieved.
-        while ans == '':
+        while ans != '10':
             self.comm.write(('\r\n10').encode())
             ans = self.comm.readline().decode().strip()
         # gets the list of distances in a string
         ans = self.comm.readline().decode().strip()
         # converts the string to an array of floats
-        return map(float, ans.split(' '))
+        return list(map(float, ans.split(' ')))
 
     #tells sonar to do a sweep without getting data
     def doSweep(self):
         ans = ''
-        while ans == '':
+        while ans != '11':
             self.comm.write(('\r\n11').encode())
-            ans = self.comm.read().decode().strip()
+            ans = self.comm.readline().decode().strip()
+            print(ans)
 
     #gets the data without doing a sweep
     def getData(self):
         ans = ''
         #continually requasts data until it's told the command has been recieved
-        while ans == '':
+        while ans != '12':
             self.comm.write(('\r\n12').encode())
             ans = self.comm.readline().decode().strip()
         # gets the list of distances in a string
         ans = self.comm.readline().decode().strip()
         # converts the string to an array of floats
-        return map(float, ans.split(' '))
+        return list(map(float, ans.split(' ')))

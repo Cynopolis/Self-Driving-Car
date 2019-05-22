@@ -71,13 +71,13 @@ void getData(){
 }
 
 void sweep(){
-  if(angle == 0){
+  if(angle < 1){
     for(angle = 0; angle <= 180; angle++){
       servo.write(angle);
       distance[angle] = getDistance();
     }
   }
-  if(angle == 180){
+  else if(angle > 179){
     for(angle = 180; angle >= 0; angle--){
       servo.write(angle);
       distance[angle] = getDistance();
