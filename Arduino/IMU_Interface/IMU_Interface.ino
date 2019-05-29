@@ -1,3 +1,14 @@
+/*
+ * This sketch is meant to allow a laptop to interface with the BerryIMU & GPS module
+ * It takes an integers sent over serial as a command
+ * 
+ * 10. Get the roll, pitch, and yaw in that order
+ * 11. get the acceleration x angle and acceleration y angle
+ * 12. Get the compass heading
+ * 13. Get the latitude, longitude, and altitude
+ * 14. Get the speed in meters per second
+ * 15. Get how many satellites are connected to the GPS module
+*/
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 #include "IMU.h"
@@ -9,6 +20,7 @@
 TinyGPSPlus gps;
 SoftwareSerial gpsSerial(3, 4); //rx pin then tx pin
 
+int commData; //commands from laptop
 String gpsData; //NMEA Sentence from GPS
 float roll = 0.0; //angle of the x-axis gro
 float pitch = 0.0; //angle of the y-axis gro
@@ -33,14 +45,60 @@ void loop() {
   getIMUData();
   updateGPS();
   //send and recieve messages here
-  Serial.println("\nStream Start");
-  Serial.println(gpsData);
-  Serial.println(yaw);
+
+  if(Serial.available()){
+    commData = getData().toInt();
+    if(commData == 10){
+      Serial.println(commData);
+      Serial.print(roll); Serial.print(" ");
+      Serial.print(pitch); Serial.print(" ");
+      Serial.println(yaw);
+    }
+    if(commData == 11){
+      Serial.println(commData);
+      Serial.print(AccXangle); Serial.print(" ");
+      Serial.println(AccYangle);
+    }
+    if(commData == 12){
+      Serial.println(commData);
+      Serial.println(heading);
+    }
+    if(commData == 13){
+      Serial.println(commData);
+      Serial.print(gps.location.lat()); Serial.print(" ");
+      Serial.print(gps.location.lng()); Serial.print(" ");
+      Serial.println(gps.altitude.meters());
+    }
+    if(commData == 14){
+      Serial.println(commData);
+      Serial.println(gps.speed.mps());
+    }
+    if(commData == 15){
+      Serial.println(commData);
+      Serial.println(gps.satellites.value());
+    }
+    if(commData == 16){
+      Serial.println(commData);
+      Serial.println(gpsData);
+    }
+  }
 
   while(millis() - startTime < (DT*1000)){
     delay(1);
+  }  
+}
+
+String getData(){
+  //Serial.println("data recieved");
+  String rawData = "";
+  while(Serial.available() > 0){
+    char c = Serial.read();
+    if(c != '\n'){
+      rawData += c;
+    }
+    delay(2);
   }
-  delay(1000);  
+  return rawData;
 }
 
 void updateGPS(){

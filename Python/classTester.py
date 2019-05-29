@@ -1,9 +1,10 @@
 import Movement
 import Sonar
+import Positioning
 
-sonar = Sonar.Sonar('COM8')
-sonar.doSweep()
-dat = sonar.updateFrame()
-print("updated")
-for data in dat:
-    print(data)
+imu = Positioning.IMU('COM8')
+
+while True:
+    nmea = imu.getRawGPSData()
+    if(nmea != ""):
+        print(nmea)
