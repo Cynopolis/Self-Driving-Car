@@ -11,9 +11,11 @@ it takes one int value sent over serial.
 int servoPin = 3; //needs to be a PWM pin
 int trigPin = 4;
 int echoPin = 5;
+int anglePin = A0; //analog in pin
 Servo servo;
 float distance[180];
-int angle = 0;
+float setAngle = 0;
+float measuredAngle = 0;
 String rawData = "";
 int data = 0;
 
