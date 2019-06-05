@@ -12,6 +12,7 @@ int servoPin = 3; //needs to be a PWM pin
 int trigPin = 4;
 int echoPin = 5;
 int anglePin = A0; //analog in pin
+
 Servo servo;
 float distance[180];
 float setAngle = 0;
