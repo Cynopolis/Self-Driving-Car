@@ -14,7 +14,7 @@ if the float is greater than 15 and up to 16, the car will go backwards at a spe
 if the float is 17, it will return the cars' current speed 
 */
 
-int steerPin1 = 7; //gpio pin on arduino uno
+int steerPin1 = 9; //gpio pin on arduino uno
 int steerPin2 = 8; //gpio pin on arduino uno
 int dirPin = 6; //gpio pin on arduino uno
 int speedPin = 5; //NEEDS to be a PWM pin.
@@ -110,7 +110,7 @@ void setAngle(float angle){
 }
 
 //finds the angle the wheels are at
-void measureAngle(){
+float measureAngle(){
   int measuredAngle = analogRead(anglePin);
   if(measuredAngle > maxAngle){
     if((measuredAngle-maxAngle) < 5){
@@ -122,7 +122,16 @@ void measureAngle(){
       minAngle = measuredAngle;
     }
   }
-  realAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
+  //realAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
+  realAngle = 60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle));
+  Serial.print("Pot Value: ");
+  Serial.print(measuredAngle);
+  Serial.print(" Max Pot Value: ");
+  Serial.print(maxAngle);
+  Serial.print(" Min Pot Value: ");
+  Serial.print(minAngle);
+  Serial.print(" Angle: ");
+  Serial.println(60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle)));
   return realAngle;
 }
 
@@ -158,18 +167,22 @@ void getVelocity(){
  */
 void setupSteering(){ 
   long timePassed = millis();
-  while(millis()-timePassed < 3000){
+  while(millis()-timePassed < 10000){
     //to the left
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
-    measureAngle();
+    //measureAngle();
+    Serial.println(measureAngle());
   }
   timePassed = millis();
-  while(millis()-timePassed < 3000){
+  while(millis()-timePassed < 10000){
     //to the right
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
-    measureAngle();
+    //measureAngle();
+    Serial.println(measureAngle());
   }
+  digitalWrite(steerPin1, LOW);
+  digitalWrite(steerPin2, LOW);
   Serial.println("0");
 }
