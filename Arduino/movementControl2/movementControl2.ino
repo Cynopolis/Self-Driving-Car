@@ -3,9 +3,9 @@ This sketch is meant to allow a laptop to interface with the movement controls o
 it takes one float value sent over serial
 
 1. Steering 
-if the float is 10, it wont move the steering column
-if the float is 11, it'll steer to the right
-if the float is 12, it'll steer to the left
+Give it a float between 10 and 12 to set the steering position
+The conversion to an angle is done by the equation
+angle = (float-11)*30
 if the float is 13, it will return the cars current steering position
 
 2. Moving
@@ -18,12 +18,16 @@ int steerPin1 = 7; //gpio pin on arduino uno
 int steerPin2 = 8; //gpio pin on arduino uno
 int dirPin = 6; //gpio pin on arduino uno
 int speedPin = 5; //NEEDS to be a PWM pin.
+int anglePin = A0; //Needs to be an analog pin
 
-String data = "";
-float formattedData = 0;
-float velocity = 0;
-int steerDir = 0;
-boolean dir;
+String rawData = ""; //unformatted serial data
+float data = 0; //formatted serial data
+float velocity = 0; //wheel speed between 0 and 1
+boolean dir; //Tells the wheel motor whether to go forward or backwards
+int minAngle; //the minimum value the potentiometer can return
+int maxAngle; //the maximum value the potentiometer can return
+float realAngle = 0; //the angle in degrees the car's steering wheel is at.
+//max angle 30 to -30 degrees
 
 void setup() {
   // put your setup code here, to run once:
@@ -32,29 +36,32 @@ void setup() {
   pinMode(steerPin2, OUTPUT);
   pinMode(dirPin, OUTPUT);
   pinMode(speedPin, OUTPUT);
+  minAngle = analogRead(anglePin);
+  maxAngle = analogRead(anglePin);
+  setupSteering();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   if(Serial.available()){
     getData();
-    if(data != ""){
-      formattedData = data.toFloat();
-      if(formattedData >= 10 && formattedData <= 13){
-        int steer = (int)formattedData - 10;
-        if(steer <= 1){
-          setDirection(steer);
+    if(rawData != ""){
+      data = rawData.toFloat();
+
+      //is the data for steering?
+      if(data >= 10 && data <= 13){
+        data -= 11;
+        if(data >= -1 && data <= 1){
+          setAngle(data*30);
         }
-        else if(steer > 1 && steer < 3){
-          steer -= 3;
-          setDirection(steer);
-        }
-        else if(steer >= 3){
-          getDirection();
+        if(data >= 2){
+          getAngle();
         }
       }
-      if(formattedData >= 14 && formattedData <= 17){
-        float vel = formattedData-14;
+      
+      //is the data for wheel speed?
+      if(data >= 14 && data <= 17){
+        float vel = data-14;
         if(vel <= 2){
           setVelocity(vel);
         }
@@ -66,43 +73,66 @@ void loop() {
   }
 }
 
+//Parses data from the serial bus
 void getData(){
-  //Serial.println("data recieved");
-  data = "";
+  Serial.println("data recieved");
+  rawData = "";
+  data = 0;
   while(Serial.available() > 0){
     char c = Serial.read();
     if(c != '\n'){
-      data += c;
+      rawData += c;
     }
     delay(2);
   }
-  //Serial.println(data);
+  Serial.println(rawData);
 }
 
-void setDirection(int dir){
-  // to the left
-  if(dir == -1){
+//moves the steering wheel to the desired angle +/- 1 degree
+void setAngle(float angle){
+  measureAngle();
+  long timePassed = millis();
+  while(realAngle > angle+1 && millis()-timePassed < 3000){
+    //to the left
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
+    measureAngle();
   }
-  // to the right
-  else if(dir == 1){
+  while(realAngle < angle-1 && millis()-timePassed < 3000){
+    //to the right
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
+    measureAngle();
   }
-  else{
-    digitalWrite(steerPin1, LOW);
-    digitalWrite(steerPin2, LOW);
-  }
-  steerDir = dir*45;
-  
+  //to the right
+  digitalWrite(steerPin1, LOW);
+  digitalWrite(steerPin2, LOW);
 }
 
-//added this function in case i'm able to tell which angle the steering wheel is at.
-void getDirection(){
-  Serial.println(steerDir);
+//finds the angle the wheels are at
+void measureAngle(){
+  int measuredAngle = analogRead(anglePin);
+  if(measuredAngle > maxAngle){
+    if((measuredAngle-maxAngle) < 5){
+      maxAngle = measuredAngle;
+    }
+  }
+  if(measuredAngle < minAngle){
+    if((minAngle-measuredAngle) < 5){
+      minAngle = measuredAngle;
+    }
+  }
+  realAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
+  return realAngle;
 }
 
+//prints the angle the wheels are at to the serial bus
+void getAngle(){
+  measureAngle();
+  Serial.println(realAngle);
+}
+
+//Sets the speed and direction of the wheel motor
 void setVelocity(float vel){
   dir = false;
   if(vel > 1){
@@ -121,4 +151,25 @@ void getVelocity(){
   else{
     Serial.println(velocity);
   }
+}
+/*
+ * moves the steering wheel all the
+ * way to the left and then all the way to the right
+ */
+void setupSteering(){ 
+  long timePassed = millis();
+  while(millis()-timePassed < 3000){
+    //to the left
+    digitalWrite(steerPin1, HIGH);
+    digitalWrite(steerPin2, LOW);
+    measureAngle();
+  }
+  timePassed = millis();
+  while(millis()-timePassed < 3000){
+    //to the right
+    digitalWrite(steerPin1, LOW);
+    digitalWrite(steerPin2, HIGH);
+    measureAngle();
+  }
+  Serial.println("0");
 }
