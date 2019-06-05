@@ -26,7 +26,9 @@ float velocity = 0; //wheel speed between 0 and 1
 boolean dir; //Tells the wheel motor whether to go forward or backwards
 int minAngle; //the minimum value the potentiometer can return
 int maxAngle; //the maximum value the potentiometer can return
-float realAngle = 0; //the angle in degrees the car's steering wheel is at.
+float currentAngle = 0; //the angle in degrees the car's steering wheel is at.
+float targetAngle = 0; //a float between 1 and -1 to represent what angle the wheels should be at.
+
 //max angle 30 to -30 degrees
 
 void setup() {
@@ -52,7 +54,7 @@ void loop() {
       if(data >= 10 && data <= 13){
         data -= 11;
         if(data >= -1 && data <= 1){
-          setAngle(data*30);
+          targetAngle = data*30;
         }
         if(data >= 2){
           getAngle();
@@ -71,6 +73,7 @@ void loop() {
       }
     }
   }
+  setAngle(targetAngle);
 }
 
 //Parses data from the serial bus
@@ -91,27 +94,22 @@ void getData(){
 //moves the steering wheel to the desired angle +/- 1 degree
 void setAngle(float angle){
   measureAngle();
-  long timePassed = millis();
-  while(realAngle > angle+1 && millis()-timePassed < 9500){
+  if(currentAngle > angle+1){
     //to the left
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
     measureAngle();
   }
-  while(realAngle < angle-1 && millis()-timePassed < 9500){
+  if(currentAngle < angle-1){
     //to the right
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
     measureAngle();
   }
-  //to the right
-  digitalWrite(steerPin1, LOW);
-  digitalWrite(steerPin2, LOW);
-  if(realAngle < angle+2 && realAngle > angle-2){
-    Serial.println("0");
-  }
-  else{
-    Serial.println("1");
+  //stop turning
+  if(angle+1 > currentAngle && angle-1 < currentAngle){
+    digitalWrite(steerPin1, LOW);
+    digitalWrite(steerPin2, LOW);
   }
 }
 
@@ -128,9 +126,9 @@ float measureAngle(){
       minAngle = measuredAngle;
     }
   }
-  //realAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
-  realAngle = 60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle));
-  Serial.print("Pot Value: ");
+  //currentAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
+  currentAngle = 60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle));
+  /*Serial.print("Pot Value: ");
   Serial.print(measuredAngle);
   Serial.print(" Max Pot Value: ");
   Serial.print(maxAngle);
@@ -138,13 +136,14 @@ float measureAngle(){
   Serial.print(minAngle);
   Serial.print(" Angle: ");
   Serial.println(60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle)));
-  return realAngle;
+  */
+  return currentAngle;
 }
 
 //prints the angle the wheels are at to the serial bus
 void getAngle(){
   measureAngle();
-  Serial.println(realAngle);
+  Serial.println(currentAngle);
 }
 
 //Sets the speed and direction of the wheel motor
