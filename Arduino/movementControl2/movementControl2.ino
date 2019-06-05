@@ -92,33 +92,39 @@ void getData(){
 void setAngle(float angle){
   measureAngle();
   long timePassed = millis();
-  while(realAngle > angle+1 && millis()-timePassed < 3000){
+  while(realAngle > angle+1 && millis()-timePassed < 9500){
     //to the left
-    digitalWrite(steerPin1, HIGH);
-    digitalWrite(steerPin2, LOW);
-    measureAngle();
-  }
-  while(realAngle < angle-1 && millis()-timePassed < 3000){
-    //to the right
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
+    measureAngle();
+  }
+  while(realAngle < angle-1 && millis()-timePassed < 9500){
+    //to the right
+    digitalWrite(steerPin1, HIGH);
+    digitalWrite(steerPin2, LOW);
     measureAngle();
   }
   //to the right
   digitalWrite(steerPin1, LOW);
   digitalWrite(steerPin2, LOW);
+  if(realAngle < angle+2 && realAngle > angle-2){
+    Serial.println("0");
+  }
+  else{
+    Serial.println("1");
+  }
 }
 
 //finds the angle the wheels are at
 float measureAngle(){
   int measuredAngle = analogRead(anglePin);
   if(measuredAngle > maxAngle){
-    if((measuredAngle-maxAngle) < 5){
+    if((measuredAngle-maxAngle) < 8){
       maxAngle = measuredAngle;
     }
   }
   if(measuredAngle < minAngle){
-    if((minAngle-measuredAngle) < 5){
+    if((minAngle-measuredAngle) < 8){
       minAngle = measuredAngle;
     }
   }
