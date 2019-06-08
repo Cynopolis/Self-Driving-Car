@@ -27,7 +27,7 @@ boolean dir; //Tells the wheel motor whether to go forward or backwards
 int minAngle; //the minimum value the potentiometer can return
 int maxAngle; //the maximum value the potentiometer can return
 float currentAngle = 0; //the angle in degrees the car's steering wheel is at.
-float targetAngle = 0; //a float between 1 and -1 to represent what angle the wheels should be at.
+//float targetAngle = 0; //a float between 1 and -1 to represent what angle the wheels should be at.
 
 //max angle 30 to -30 degrees
 
@@ -57,10 +57,10 @@ void loop() {
         
         data -= 11;
         if(data >= -1 && data <= 1){
-          targetAngle = data*30;
+          setAngle(data*30);
         }
         if(data >= 2){
-          getAngle();
+          Serial.println(measureAngle());
         }
       }
       
@@ -77,12 +77,11 @@ void loop() {
       }
     }
   }
-  setAngle(targetAngle);
 }
 
 //Parses data from the serial bus
 void getData(){
-  Serial.println("data recieved");
+  //Serial.println("data recieved");
   rawData = "";
   data = 0;
   while(Serial.available() > 0){
@@ -92,62 +91,54 @@ void getData(){
     }
     delay(2);
   }
-  Serial.println(rawData);
+  //Serial.println(rawData);
 }
 
 //moves the steering wheel to the desired angle +/- 1 degree
 void setAngle(float angle){
   measureAngle();
-  if(currentAngle > angle+1){
+  while(currentAngle > angle+1.5){
     //to the left
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
     measureAngle();
   }
-  if(currentAngle < angle-1){
+  while(currentAngle < angle-1.5){
     //to the right
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
     measureAngle();
   }
   //stop turning
-  if(angle+1 > currentAngle && angle-1 < currentAngle){
-    digitalWrite(steerPin1, LOW);
-    digitalWrite(steerPin2, LOW);
-  }
+  digitalWrite(steerPin1, LOW);
+  digitalWrite(steerPin2, LOW);
+  Serial.println("ready");
 }
 
 //finds the angle the wheels are at
 float measureAngle(){
-  int measuredAngle = analogRead(anglePin);
-  if(measuredAngle > maxAngle){
-    if((measuredAngle-maxAngle) < 8){
-      maxAngle = measuredAngle;
+  int angle1 = analogRead(anglePin);
+  if(angle1 > maxAngle){
+    if((angle1-maxAngle) < 5){
+      maxAngle = angle1;
     }
   }
-  if(measuredAngle < minAngle){
-    if((minAngle-measuredAngle) < 8){
-      minAngle = measuredAngle;
+  if(angle1 < minAngle){
+    if((minAngle-angle1) < 5){
+      minAngle = angle1;
     }
   }
-  //currentAngle = ((measuredAngle-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
-  currentAngle = 60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle));
+  //currentAngle = ((angle1-minAngle-(maxAngle-minAngle)/2)/(maxAngle-minAngle))*60;
+  currentAngle = 60*((angle1-0.5*(minAngle + maxAngle))/(maxAngle-minAngle));
   /*Serial.print("Pot Value: ");
-  Serial.print(measuredAngle);
+  Serial.print(angle1);
   Serial.print(" Max Pot Value: ");
   Serial.print(maxAngle);
   Serial.print(" Min Pot Value: ");
   Serial.print(minAngle);
   Serial.print(" Angle: ");
-  Serial.println(60*((measuredAngle-0.5*(minAngle + maxAngle))/(maxAngle-minAngle)));
-  */
+  Serial.println(60*((angle1-0.5*(minAngle + maxAngle))/(maxAngle-minAngle)));*/
   return currentAngle;
-}
-
-//prints the angle the wheels are at to the serial bus
-void getAngle(){
-  measureAngle();
-  Serial.println(currentAngle);
 }
 
 //Sets the speed and direction of the wheel motor
@@ -181,7 +172,7 @@ void setupSteering(){
     digitalWrite(steerPin1, HIGH);
     digitalWrite(steerPin2, LOW);
     //measureAngle();
-    Serial.println(measureAngle());
+    measureAngle();
   }
   timePassed = millis();
   while(millis()-timePassed < 10000){
@@ -189,9 +180,9 @@ void setupSteering(){
     digitalWrite(steerPin1, LOW);
     digitalWrite(steerPin2, HIGH);
     //measureAngle();
-    Serial.println(measureAngle());
+    measureAngle();
   }
   digitalWrite(steerPin1, LOW);
   digitalWrite(steerPin2, LOW);
-  Serial.println("0");
+  Serial.println("ready");
 }

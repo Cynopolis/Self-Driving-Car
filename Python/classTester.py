@@ -2,9 +2,7 @@ import Movement
 import Sonar
 import Positioning
 
-imu = Positioning.IMU('COM8')
+car = Movement.Move("COM3", 0, 0)
 
-while True:
-    nmea = imu.getRawGPSData()
-    if(nmea != ""):
-        print(nmea)
+print(car.checkWheelPos())
+
