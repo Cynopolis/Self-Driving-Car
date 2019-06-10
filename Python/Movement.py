@@ -59,10 +59,19 @@ class Move:
 
     #this class is currently untested because at the time of writting I didn't have an arduino. Try it out and see if it works
     def writeToArduino(self, message):
-        str = '' + message
         ans = ''
+        message = str(message)
         while ans != message:
             self.comm.write(('\r\n'+message).encode())
             ans = self.comm.readline().decode().strip()
+            print(ans)
         ans = self.comm.readline().decode().strip()
         return ans
+
+    def callibrateWheel(self):
+        print(self.writeToArduino(1))
+        ans = ''
+        while ans != 'ready':
+            ans = self.comm.readline().decode().strip()
+            time.sleep(0.1)
+            print(ans)

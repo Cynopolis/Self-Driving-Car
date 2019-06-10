@@ -49,7 +49,11 @@ void loop() {
     getData();
     if(rawData != ""){
       data = rawData.toFloat();
-
+      if(data == 1){
+        Serial.println(data);
+        setupSteering();
+        Serial.println("ready");
+      }
       //is the data for steering?
       if(data >= 10 && data <= 13){
         //notify computer that the data has been recieved
