@@ -2,9 +2,6 @@ import Movement
 import Sonar
 import Positioning
 
-imu = Positioning.IMU('COM8')
-
-while True:
-    nmea = imu.getRawGPSData()
-    if(nmea != ""):
-        print(nmea)
+move = Movement.Move('COM5', 0, 0)
+move.setSpeed(-1)
+print(move.checkSpeed())
